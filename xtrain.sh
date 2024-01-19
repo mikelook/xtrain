@@ -14,22 +14,6 @@ apt-get install fail2ban -y
 apt-get install sudo -y 
 apt-get install curl -y 
 apt-get install update -y 
-
-echo -e "\033[46;33m--------------------------修改sshg---------------------------------\033[0m"
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config_123backup #没测试
-# 提示用户输入新的 SSH 端口号
-read -p "请输入新的SSH端口号: " newport
-export newport
-
-# 使用 sed 命令修改 sshd_config 中的 Port 参数
-
-# 使用 sed 命令插入新行
-sed -i "2iPort $newport" /etc/ssh/sshd_config
-sed -i '3iPubkeyAuthentication yes' /etc/ssh/sshd_config
-sed -i '4iPasswordAuthentication no' /etc/ssh/sshd_config
-sed -i '5iPermitRootLogin no' /etc/ssh/sshd_config
-service ssh restart
-echo "修改完成，请查看 vim /etc/ssh/sshd_config"
 echo -e "\033[46;33m---------------xray配置---------------------------------\033[0m"
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root
 cd /usr/local/etc/xray
@@ -47,6 +31,8 @@ read -p "请输入uuid: " uuid
 read -p "请输入域名带443: " domain
 read -p "请输入服务器名1: " domain1
 read -p "请输入服务器名2: " domain2
+read -p "请输入服务器名3: " domain3
+read -p "请输入服务器名4: " domain4
 read -p "请输入privatekey: " key
 # 判断 key 文件是否存在
 if [ -f "$key_file" ]; then
@@ -122,7 +108,9 @@ config='{
           "minClientVer": "",
           "serverNames": [
             "'"$domain1"'",
-            "'"$domain2"'"    
+            "'"$domain2"'",
+            "'"$domain3"'",
+            "'"$domain4"'"    
           ],
           "privateKey": "'"$key"'",
           "shortIds": [
@@ -199,3 +187,10 @@ systemctl start xray@xtls.service
 cat /usr/local/etc/xray/uuid
 cat /usr/local/etc/xray/key
 echo "systemctl status xray@xtls.service"
+
+echo -e " \033[46;33m----------------BSR---------------------------------\033[0m"
+#修改系统变量
+echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+#保存生效
+sysctl -p
